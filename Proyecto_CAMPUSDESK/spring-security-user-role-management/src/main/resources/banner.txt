@@ -1,0 +1,16 @@
+
+  _   _   _____  __   __   ___
+ | \ | | | ____| \ \ / /  / _ \
+ |  \| | |  _|    \ V /  | | | |
+ | |\  | | |___   / . \  | |_| |
+ |_| \_| |_____| /_/ \_\  \___/
+
+  NEXO | Gestion y seguridad
+  ----------------------------------------------------------
+  Usuarios y roles  /  Permisos  /  JWT
+  Clientes          /  Productos /  Ventas
+  ----------------------------------------------------------
+  Plantilla REST con acceso por roles y permisos individuales
+
+  Spring Boot ${spring-boot.version} | Java ${java.version}
+  Perfil: ${spring.profiles.active}

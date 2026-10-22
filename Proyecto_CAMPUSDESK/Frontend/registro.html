@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Cuenta · CAMPUSDESK</title>
+  <link rel="stylesheet" href="auth.css">
+  <script src="config.js?v=20261020"></script>
+</head>
+<body>
+
+  <!-- Contenedor principal de autenticación -->
+  <main class="auth-wrapper">
+    <div class="auth-card">
+
+      <!-- Logo y título estilo NEXO -->
+      <header class="auth-header">
+        <div class="auth-logo-box">
+          <svg width="42" height="42" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo CAMPUSDESK">
+            <!-- Rombo exterior -->
+            <polygon points="24,4 44,24 24,44 4,24" stroke="#10B981" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+            <!-- Rombo interior -->
+            <polygon points="24,13 35,24 24,35 13,24" stroke="#34D399" stroke-width="2.5" fill="rgba(16, 185, 129, 0.22)" stroke-linejoin="round"/>
+            <!-- Conectores geométricos -->
+            <line x1="24" y1="4" x2="24" y2="13" stroke="#10B981" stroke-width="2"/>
+            <line x1="24" y1="35" x2="24" y2="44" stroke="#10B981" stroke-width="2"/>
+            <line x1="4" y1="24" x2="13" y2="24" stroke="#10B981" stroke-width="2"/>
+            <line x1="35" y1="24" x2="44" y2="24" stroke="#10B981" stroke-width="2"/>
+          </svg>
+        </div>
+        <h1 class="auth-title">CAMPUSDESK</h1>
+        <p class="auth-subtitle">Gestión y Seguridad</p>
+      </header>
+
+      <!-- Caja de alertas (error o éxito) -->
+      <div id="alertBox" class="alert" role="alert"></div>
+
+      <!-- Formulario de registro -->
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="nombre">Nombre completo</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-input"
+            placeholder="Ej. Juan Pérez"
+            autocomplete="name"
+            required
+            autofocus
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Correo electrónico</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            placeholder="ejemplo@campusdesk.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Contraseña (mín. 8 caracteres)</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="100"
+            required
+          >
+          <small style="display: block; color: #64748B; font-size: 11.5px; margin-top: 4px;">
+            Requisitos: 8 a 100 caracteres, al menos una mayúscula, una minúscula y un número.
+          </small>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-primary">
+          <span>Registrarse</span>
+        </button>
+      </form>
+
+      <!-- Enlace para volver a iniciar sesión -->
+      <p class="auth-switch">
+        ¿Ya tienes cuenta? <a href="login.html" class="auth-link">Inicia sesión aquí</a>
+      </p>
+
+    </div>
+  </main>
+
+  <!-- Pie de página con estado de conexión -->
+  <footer class="auth-footer">
+    <div style="width: 140px;"></div>
+    <div class="auth-footer-center">Mesa de Ayuda - CAMPUSDESK</div>
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      <span>Conexión activa</span>
+    </div>
+  </footer>
+
+  <script>
+    'use strict';
+
+    const registerForm = document.getElementById('registerForm');
+    const alertBox = document.getElementById('alertBox');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const BASE_URL = (typeof window.getCampusDeskApiUrl === 'function')
+      ? window.getCampusDeskApiUrl()
+      : (window.location.protocol.startsWith('http') ? window.location.origin : 'http://localhost:8056');
+
+    const API_URL = `${BASE_URL}/auth/register`;
+
+    function showAlert(message, type = 'error') {
+      alertBox.textContent = message;
+      alertBox.className = `alert ${type}`;
+    }
+
+    function clearAlert() {
+      alertBox.textContent = '';
+      alertBox.className = 'alert';
+    }
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAlert();
+
+      const nombre = document.getElementById('nombre').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Validación en cliente
+      if (!nombre || !email || !password) {
+        showAlert('Por favor completa todos los campos.');
+        return;
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,100}$/;
+      if (!passwordRegex.test(password)) {
+        showAlert('La contraseña debe tener entre 8 y 100 caracteres, e incluir al menos una mayúscula, una minúscula y un número.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Registrando cuenta...</span>';
+
+      try {
+        const payload = {
+          name: nombre,
+          email: email,
+          password: password
+        };
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (_) {
+          data = null;
+        }
+
+        if (!response.ok) {
+          console.warn('[CAMPUSDESK Register Diagnosis]', {
+            status: response.status,
+            statusText: response.statusText,
+            url: API_URL,
+            backendResponse: data
+          });
+
+          if (response.status === 409) {
+            showAlert('El correo electrónico ya se encuentra registrado en el sistema.', 'error');
+          } else if (response.status === 400) {
+            let errorMsg = 'Datos de registro inválidos.';
+            if (data && data.message) errorMsg = data.message;
+            else if (data && data.errors) errorMsg = Object.values(data.errors).join('. ');
+            showAlert(errorMsg, 'error');
+          } else if (response.status === 403) {
+            showAlert('Acceso denegado (403). Restricción de seguridad u origen no autorizado (CORS).', 'error');
+          } else if (response.status === 404) {
+            showAlert('Ruta de registro no encontrada (404). Verifica que Nginx esté enrutando /auth al backend.', 'error');
+          } else if (response.status >= 500) {
+            showAlert('Error interno del servidor (5xx). Verifica los servicios de base de datos en Docker.', 'error');
+          } else {
+            showAlert('No se pudo completar el registro. Intente nuevamente.', 'error');
+          }
+          return;
+        }
+
+        showAlert('¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...', 'success');
+        registerForm.reset();
+
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+
+      } catch (error) {
+        console.error('[CAMPUSDESK Register Network Error]', { url: API_URL, error: error.message });
+        showAlert(`Error de conexión con el servidor (${BASE_URL}). Verifica la conectividad de red local y que el backend esté en ejecución.`, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Registrarse</span>';
+      }
+    });
+  </script>
+</body>
+</html>

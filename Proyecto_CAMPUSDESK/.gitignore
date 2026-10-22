@@ -1,0 +1,145 @@
+# ==============================================================================
+# CAMPUSDESK - Archivo .gitignore
+# TechNova Solutions - Helpdesk Ticketing System
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. ARCHIVOS DE ENTORNO Y SECRETOS (Credenciales, tokens y llaves)
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+*.cert
+# Permitir siempre la plantilla de variables de entorno
+!.env.example
+
+# ------------------------------------------------------------------------------
+# 2. JAVA & SPRING BOOT (Compilación, artefactos y Gradle)
+# ------------------------------------------------------------------------------
+.gradle/
+build/
+bin/
+out/
+target/
+*.class
+
+# Empaquetados (permitir wrapper de gradle)
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+!gradle/wrapper/gradle-wrapper.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Exclusiones de build internas
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Archivos de volcado de error de la JVM
+hs_err_pid*
+replay_pid*
+
+# ------------------------------------------------------------------------------
+# 3. REGISTROS Y LOGS
+# ------------------------------------------------------------------------------
+*.log
+logs/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# 4. ENTORNOS DE DESARROLLO E IDES
+# ------------------------------------------------------------------------------
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse / Spring Tool Suite (STS)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ------------------------------------------------------------------------------
+# 5. FRONTEND & DEPENDENCIAS NODE.JS (Si se añade tooling futuro)
+# ------------------------------------------------------------------------------
+node_modules/
+coverage/
+.nyc_output/
+.cache/
+.parcel-cache/
+
+# ------------------------------------------------------------------------------
+# 6. BASES DE DATOS & VOLÚMENES LOCALES DOCKER
+# ------------------------------------------------------------------------------
+pgdata/
+postgres-data/
+dump.rdb
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------------------------
+# 7. SISTEMA OPERATIVO Y ARCHIVOS TEMPORALES
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux y Editores
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+*.temp
+*.orig
+*.rej
+
+# ------------------------------------------------------------------------------
+# 8. ASISTENTES DE CÓDIGO Y METADATOS LOCALES
+# ------------------------------------------------------------------------------
+.gemini/
+.agents/
+.claude/

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mesa de Ayuda · CAMPUSDESK</title>
+  <!-- Configuración de API y Guardián de autenticación -->
+  <script src="config.js?v=20261020"></script>
+  <script src="auth-guard.js?v=20261020"></script>
+  <link rel="stylesheet" href="styles.css?v=20261020">
+</head>
+<body class="campus-app">
+
+  <!-- Barra de Navegación Superior -->
+  <header class="campus-navbar">
+    <div class="campus-brand">
+      <svg width="34" height="34" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo CAMPUSDESK">
+        <polygon points="24,4 44,24 24,44 4,24" stroke="#10B981" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+        <polygon points="24,13 35,24 24,35 13,24" stroke="#34D399" stroke-width="2.5" fill="rgba(16, 185, 129, 0.25)" stroke-linejoin="round"/>
+        <line x1="24" y1="4" x2="24" y2="13" stroke="#10B981" stroke-width="2"/>
+        <line x1="24" y1="35" x2="24" y2="44" stroke="#10B981" stroke-width="2"/>
+        <line x1="4" y1="24" x2="13" y2="24" stroke="#10B981" stroke-width="2"/>
+        <line x1="35" y1="24" x2="44" y2="24" stroke="#10B981" stroke-width="2"/>
+      </svg>
+      <div>
+        <h2 class="campus-brand-title">CAMPUSDESK</h2>
+        <span class="campus-brand-sub">TechNova Solutions · Soporte</span>
+      </div>
+    </div>
+
+    <nav class="navbar-nav" style="display: flex; gap: 8px; align-items: center;">
+      <button class="btn-campus-secondary active-view-btn" id="btnNavHelpdesk" style="padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;">
+        📋 Mesa de Ayuda
+      </button>
+      <button class="btn-campus-secondary" id="btnNavAdmin" style="display: none; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;">
+        👥 Administración
+      </button>
+      <button class="btn-campus-secondary" id="btnNavTemplates" style="display: none; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;">
+        💬 Plantillas
+      </button>
+    </nav>
+
+    <div class="navbar-user">
+      <div class="user-chip">
+        <span id="navUserEmail" style="font-size: 13.5px; font-weight: 500;">cargando...</span>
+        <span id="navUserRole" class="role-pill user">USER</span>
+      </div>
+      <button class="btn-ghost-logout" id="btnLogout" title="Cerrar sesión activa">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="campus-main">
+
+    <!-- Sección 1: Mesa de Ayuda (Tickets & Métricas) -->
+    <div id="sectionHelpdesk">
+      <!-- Encabezado de Vista -->
+      <section class="view-header">
+        <div class="view-title">
+          <h1>Mesa de Ayuda & Incidencias</h1>
+          <p>Monitoreo centralizado, control de flujo y trazabilidad en tiempo real</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn-campus-secondary" id="btnRefresh" title="Recargar tickets y métricas">
+            <span>↻ Actualizar</span>
+          </button>
+          <button class="btn-campus-primary" id="btnOpenCreateModal">
+            <span>+ Nueva Incidencia</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Tarjetas de Métricas del Dashboard (RF-07) -->
+      <section class="metrics-grid">
+        <div class="metric-card m-total" data-filter="" id="cardTotal">
+          <div class="metric-num" id="metricTotal">0</div>
+          <div class="metric-lbl">Total Incidencias</div>
+        </div>
+        <div class="metric-card m-abierta" data-filter="ABIERTA" id="cardAbierta">
+          <div class="metric-num" id="metricAbiertas">0</div>
+          <div class="metric-lbl">Abiertas</div>
+        </div>
+        <div class="metric-card m-asignada" data-filter="ASIGNADA" id="cardAsignada">
+          <div class="metric-num" id="metricAsignadas">0</div>
+          <div class="metric-lbl">Asignadas</div>
+        </div>
+        <div class="metric-card m-proceso" data-filter="EN_PROCESO" id="cardProceso">
+          <div class="metric-num" id="metricEnProceso">0</div>
+          <div class="metric-lbl">En Proceso</div>
+        </div>
+        <div class="metric-card m-resuelta" data-filter="RESUELTA" id="cardResuelta">
+          <div class="metric-num" id="metricResueltas">0</div>
+          <div class="metric-lbl">Resueltas</div>
+        </div>
+        <div class="metric-card m-cerrada" data-filter="CERRADA" id="cardCerrada">
+          <div class="metric-num" id="metricCerradas">0</div>
+          <div class="metric-lbl">Cerradas</div>
+        </div>
+      </section>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <section class="toolbar-card">
+        <div class="toolbar-search">
+          <input type="text" id="searchInput" placeholder="Buscar por título o #ID de ticket...">
+        </div>
+        <div class="toolbar-selects">
+          <select id="filterStatus" aria-label="Filtrar por estado">
+            <option value="">Estado: Todos</option>
+            <option value="ABIERTA">Abierta</option>
+            <option value="ASIGNADA">Asignada</option>
+            <option value="EN_PROCESO">En Proceso</option>
+            <option value="RESUELTA">Resuelta</option>
+            <option value="CERRADA">Cerrada</option>
+          </select>
+
+          <select id="filterPriority" aria-label="Filtrar por prioridad">
+            <option value="">Prioridad: Todas</option>
+            <option value="BAJA">Baja</option>
+            <option value="MEDIA">Media</option>
+            <option value="ALTA">Alta</option>
+            <option value="CRITICA">Crítica</option>
+          </select>
+
+          <select id="filterCategory" aria-label="Filtrar por categoría">
+            <option value="">Categoría: Todas</option>
+            <option value="HARDWARE">Hardware</option>
+            <option value="SOFTWARE">Software</option>
+            <option value="REDES">Redes</option>
+            <option value="ACCESOS">Accesos</option>
+            <option value="OTROS">Otros</option>
+          </select>
+
+          <button class="btn-campus-secondary" id="btnReopened" style="display: none; padding: 9px 12px; font-size: 13px;" title="Tickets con al menos una reapertura">↻ Reabiertos</button>
+
+          <input type="text" id="filterTag" aria-label="Filtrar por etiqueta" placeholder="Etiqueta (ej. VPN)"
+                 style="padding: 9px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; min-width: 150px;">
+
+          <button class="btn-campus-secondary" id="btnResetFilters" style="padding: 9px 12px; font-size: 13px;">Limpiar</button>
+        </div>
+      </section>
+
+      <!-- Tabla de Incidencias -->
+      <section class="table-card">
+        <div class="table-responsive">
+          <table class="campus-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;"># ID</th>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Solicitante</th>
+                <th>Técnico Asignado</th>
+                <th>Fecha Creación</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="ticketsTableBody">
+              <tr>
+                <td colspan="9" style="text-align: center; padding: 40px; color: #64748B;">
+                  Cargando incidencias del servidor...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Sección 2: Administración de Usuarios (F2 - Exclusivo ADMIN) -->
+    <div id="sectionAdmin" style="display: none;">
+      <section class="view-header">
+        <div class="view-title">
+          <h1>Administración de Usuarios del Sistema</h1>
+          <p>Supervisión centralizada de cuentas de usuario, personal técnico y asignación de incidencias</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn-campus-secondary" id="btnRefreshAdminUsers" title="Recargar usuarios">
+            <span>↻ Actualizar Usuarios</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Barra de Filtros de Usuarios -->
+      <section class="toolbar-card">
+        <div class="toolbar-search">
+          <input type="text" id="searchUserInput" placeholder="Buscar usuario por nombre o correo electrónico...">
+        </div>
+        <div class="toolbar-selects">
+          <select id="filterUserRole" aria-label="Filtrar por rol">
+            <option value="">Todos los roles</option>
+            <option value="ADMIN">Administrador (ADMIN)</option>
+            <option value="TECHNICIAN">Técnico de Soporte (TECHNICIAN)</option>
+            <option value="USER">Usuario Solicitante (USER)</option>
+          </select>
+          <button class="btn-campus-secondary" id="btnResetUserFilters" style="padding: 9px 12px; font-size: 13px;">Limpiar</button>
+        </div>
+      </section>
+
+      <!-- Tabla de Usuarios Registrados -->
+      <section class="table-card">
+        <div class="table-responsive">
+          <table class="campus-table">
+            <thead>
+              <tr>
+                <th style="width: 70px;"># ID</th>
+                <th>Nombre</th>
+                <th>Correo Institucional</th>
+                <th>Rol en el Sistema</th>
+                <th style="text-align: right;">Acciones de Soporte</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #64748B;">
+                  Cargando usuarios registrados...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Reporte de Productividad por Técnico (Ejercicio 9) y Cierre por Inactividad (Ejercicio 10) -->
+      <section class="view-header" style="margin-top: 30px;">
+        <div class="view-title">
+          <h2>Productividad del Equipo Técnico (Ejercicio 9)</h2>
+          <p>Métricas consolidadas de carga activa, resolución y promedio de tiempo dedicado</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn-campus-secondary" id="btnRefreshProductivity" title="Recargar métricas de productividad">
+            <span>↻ Actualizar Métricas</span>
+          </button>
+          <button class="btn-campus-primary" id="btnTriggerAutoClose" title="Cerrar incidencias RESUELTA con más de 48h sin actividad">
+            <span>⏳ Cierre Automático por Inactividad (Ej. 10)</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="table-card">
+        <div class="table-responsive">
+          <table class="campus-table">
+            <thead>
+              <tr>
+                <th style="width: 70px;"># ID</th>
+                <th>Técnico</th>
+                <th>Correo Electrónico</th>
+                <th>Tickets Asignados</th>
+                <th>Tickets Activos</th>
+                <th>Tickets Resueltos</th>
+                <th>Minutos Registrados</th>
+                <th>Promedio Min/Ticket</th>
+              </tr>
+            </thead>
+            <tbody id="productivityTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 40px; color: #64748B;">
+                  Cargando métricas de productividad...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Sección 3: Plantillas de Solución Rápida (Ejercicio 5 - TECHNICIAN) -->
+    <div id="sectionTemplates" style="display: none;">
+      <section class="view-header">
+        <div class="view-title">
+          <h1>Plantillas de Solución Rápida</h1>
+          <p>Catálogo personal de respuestas frecuentes para publicar en tus incidencias EN PROCESO</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn-campus-secondary" id="btnRefreshTemplates"><span>↻ Actualizar</span></button>
+        </div>
+      </section>
+
+      <section class="toolbar-card" style="display: block;">
+        <form id="formTemplate">
+          <input type="hidden" id="templateEditId" value="">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+            <input type="text" id="templateTitulo" maxlength="100" required placeholder="Título (único por técnico). Ej: Reinicio de módem"
+                   style="flex: 2; min-width: 240px; padding: 9px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13.5px;">
+            <select id="templateCategoria" style="flex: 1; min-width: 150px; padding: 9px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13.5px;">
+              <option value="HARDWARE">Hardware</option>
+              <option value="SOFTWARE">Software</option>
+              <option value="REDES">Redes</option>
+              <option value="ACCESOS">Accesos</option>
+              <option value="OTROS">Otros</option>
+            </select>
+          </div>
+          <textarea id="templateContenido" rows="4" maxlength="4000" required placeholder="Contenido de la respuesta..."
+                    style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; resize: vertical; font-size: 13.5px;"></textarea>
+          <div style="text-align: right; margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end;">
+            <button type="button" class="btn-campus-secondary" id="btnCancelTemplateEdit" style="display: none;">Cancelar edición</button>
+            <button type="submit" class="btn-campus-primary" id="btnSaveTemplate">Guardar Plantilla</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="table-card">
+        <div class="table-responsive">
+          <table class="campus-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Contenido</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="templatesTableBody">
+              <tr><td colspan="4" style="text-align: center; padding: 30px; color: #64748B;">Sin plantillas registradas.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal: Crear / Editar Incidencia (RF-03, F1) -->
+  <div class="modal-overlay" id="modalCreateTicket">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalCreateTicketTitle">Crear Nueva Incidencia</h3>
+        <button class="modal-close-btn" id="btnCloseCreateModal" type="button">&times;</button>
+      </div>
+      <form id="formCreateTicket">
+        <input type="hidden" id="editTicketId" value="">
+        <div class="modal-body">
+          <div style="margin-bottom: 16px;">
+            <label for="newTitle" style="font-weight: 600; font-size: 13px; color: #334155;">Título del problema *</label>
+            <input type="text" id="newTitle" required minlength="5" maxlength="150" placeholder="Ej. Falla de conectividad Wi-Fi en Aula Magna" style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+            <div>
+              <label for="newCategory" style="font-weight: 600; font-size: 13px; color: #334155;">Categoría *</label>
+              <select id="newCategory" required style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
+                <option value="REDES">Redes</option>
+                <option value="HARDWARE">Hardware</option>
+                <option value="SOFTWARE">Software</option>
+                <option value="ACCESOS">Accesos</option>
+                <option value="OTROS">Otros</option>
+              </select>
+            </div>
+            <div>
+              <label for="newPriority" style="font-weight: 600; font-size: 13px; color: #334155;">Prioridad *</label>
+              <select id="newPriority" required style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
+                <option value="BAJA">Baja</option>
+                <option value="MEDIA" selected>Media</option>
+                <option value="ALTA">Alta</option>
+                <option value="CRITICA">Crítica</option>
+              </select>
+            </div>
+            <div>
+              <label for="newStatus" style="font-weight: 600; font-size: 13px; color: #334155;">Estado *</label>
+              <select id="newStatus" required style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
+                <option value="ABIERTA" selected>Abierta</option>
+                <option value="ASIGNADA">Asignada</option>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="RESUELTA">Resuelta</option>
+                <option value="CERRADA">Cerrada</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <label for="newDescription" style="font-weight: 600; font-size: 13px; color: #334155;">Descripción detallada *</label>
+            <textarea id="newDescription" rows="4" required minlength="10" placeholder="Describa el comportamiento observado, mensajes de error y ubicación específica..." style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; resize: vertical;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-campus-secondary" id="btnCancelCreate">Cancelar</button>
+          <button type="submit" class="btn-campus-primary" id="btnSubmitCreate">Guardar Incidencia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Detalle Integral del Ticket (RF-04, RF-05, RF-06) -->
+  <div class="modal-overlay" id="modalDetailTicket">
+    <div class="modal-container" style="max-width: 760px;">
+      <div class="modal-header">
+        <div>
+
+          <span style="font-size: 12px; font-weight: 700; color: #64748B;" id="detailTicketId">#0</span>
+          <h3 style="margin-top: 2px;" id="detailTicketTitle">Cargando...</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseDetailModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Pestañas del Modal -->
+        <div class="modal-tabs">
+          <button class="tab-btn active" data-tab="tab-info" id="btnTabInfo">Detalle y Acciones</button>
+          <button class="tab-btn" data-tab="tab-comments" id="btnTabComments">Comentarios (<span id="detailCommentCount">0</span>)</button>
+          <button class="tab-btn" data-tab="tab-worklog" id="btnTabWorklog">Tiempo Técnico</button>
+          <button class="tab-btn" data-tab="tab-history" id="btnTabHistory">Trazabilidad / Auditoría</button>
+        </div>
+
+        <!-- Pestaña 1: Detalle y Acciones de Flujo -->
+        <div id="tab-info" class="tab-content">
+          <div class="detail-grid">
+            <div class="detail-cell">
+              <div class="detail-cell-lbl">Estado Actual</div>
+              <div class="detail-cell-val" id="detailStatusBadge"></div>
+            </div>
+            <div class="detail-cell">
+              <div class="detail-cell-lbl">Prioridad</div>
+              <div class="detail-cell-val" id="detailPriorityBadge"></div>
+            </div>
+            <div class="detail-cell">
+              <div class="detail-cell-lbl">Solicitante</div>
+              <div class="detail-cell-val" id="detailSolicitante">—</div>
+            </div>
+            <div class="detail-cell">
+              <div class="detail-cell-lbl">Técnico Asignado</div>
+              <div class="detail-cell-val" id="detailTecnico">—</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 6px;">Descripción</div>
+            <div class="description-box" id="detailDescription"></div>
+          </div>
+
+          <!-- Ejercicio 1: Etiquetas -->
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 6px;">Etiquetas</div>
+            <div id="detailTags" class="tag-list"></div>
+            <div id="tagEditor" style="display: none; margin-top: 10px;"></div>
+          </div>
+
+          <!-- Ejercicios 2 y 3: Reapertura y Transferencia -->
+          <div id="extraActions"></div>
+
+          <!-- Panel Dinámico de Transiciones según Rol y Estado Actual -->
+          <div id="dynamicActionPanel">
+            <!-- Renderizado dinámico vía JavaScript -->
+          </div>
+        </div>
+
+        <!-- Pestaña 2: Comentarios (RF-05) -->
+        <div id="tab-comments" class="tab-content" style="display: none;">
+          <div class="comments-list" id="commentsContainer">
+            <!-- Lista de comentarios cronológicos -->
+          </div>
+
+          <div id="quickTemplatePanel"></div>
+
+          <div id="commentFormContainer">
+            <form id="formAddComment" style="margin-top: 14px;">
+              <textarea id="commentContent" rows="3" required placeholder="Escriba una nota o actualización técnica sobre esta incidencia..." style="width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; resize: vertical;"></textarea>
+              <div style="text-align: right; margin-top: 8px;">
+                <button type="submit" class="btn-campus-primary" style="padding: 8px 16px; font-size: 13.5px;" id="btnSubmitComment">
+                  Agregar Comentario
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Pestaña: Tiempo Técnico (Ejercicio 4) -->
+        <div id="tab-worklog" class="tab-content" style="display: none;">
+          <div id="worklogSummary"></div>
+          <div id="worklogFormBox" style="margin-top: 14px;"></div>
+        </div>
+
+        <!-- Pestaña 3: Historial y Auditoría (RF-06) -->
+        <div id="tab-history" class="tab-content" style="display: none;">
+          <div class="timeline" id="historyTimeline">
+            <!-- Línea de tiempo cronológica -->
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-campus-secondary" id="btnExitDetail">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="campus-toast" id="toastBox">
+    <span id="toastMessage">Operación realizada con éxito</span>
+  </div>
+
+  <!-- Lógica Integral en Vanilla JS -->
+  <script src="app.js?v=20261020"></script>
+</body>
+</html>
